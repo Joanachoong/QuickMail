@@ -1,0 +1,23 @@
+{
+    "version":"1.0",
+    "manifest_version": 3,
+    "name": "QuickMail",
+ 
+    "description": "Quickly compose and send emails from your browser.",
+    "permissions": ["identity","storage"],
+    "host_permissions": ["https://www.googleapis.com/*"],"background": {
+    "service_worker": "background.js"
+  },
+  
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+    }
+  },"oauth2": {
+    "client_id": "674352347323-c9rokvr0lv0icdi6gl4v6jmhehjgpdue.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/gmail.readonly"
+    ]
+  }
+  
+}
