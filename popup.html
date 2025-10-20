@@ -1,25 +1,43 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <link rel="stylesheet" href="popup.css">
+  <title>Email Voice Assistant</title>
+  <style>
+    body {
+      width: 300px;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #status {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+  </style>
 </head>
-
 <body>
-  <div id="appContainer">
-    <h1>QuickMail Extension</h1>
-    <div id="auth-box">
-        <p>Connect with your Gmail Account</p>
-        <button id="auth-button">Connect Gmail</button>
-    </div>
-
-    <div id="email-section" style="display: none;">
-      <div id="loading">Loading emails...</div>
-      <div id="email-list"></div>
-    </div>
-
-    
-  </div>
+  <h2>Email Voice Assistant</h2>
+  
+  <div id="status"></div>
+  
+  <button id="loginBtn">Login with Gmail</button>
+  <button id="checkAuthBtn">check Authentication</button>
+  
   <script src="popup.js"></script>
 </body>
 </html>
