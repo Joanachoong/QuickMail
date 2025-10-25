@@ -1,5 +1,7 @@
 //to coomunicate with background 
 
+import { summarizeEmail } from "./emailProcessor";
+
 //get DOM element 
 
 const loginBtn = document.getElementById('loginBtn');
@@ -56,49 +58,23 @@ checkAuthBtn.addEventListener('click',()=>{
   );
 
   chrome.runtime.sendMessage(
-  { type: "GET_EMAILS" },  // ← Not CHECK_AUTH!
-  (response) => {
+  { type: "GET_EMAILS" },  
+  async(response) => {
     if (response.success) {
-      const emails = response.emails;  // ← Now this exists!
+      const emails = response.emails;  
       console.log("Got emails:", emails);
-      for(let i=0;i<emails.length;i++){
-        const email=emails[i];
-        const header=email.payload.headers;
-        const sender= getHeader(header,"From");
-        const title= getHeader(header,"Subject");
+      // Start ALL summarization requests at once
+        const summaryPromises = emails.map(email => summarizeEmail(email));
 
-        console.log(`Email ${i+1}`);
-         console.log(`Subject :${title}`);
-          console.log(`From ${sender}`);
-
-
-      }
+        // Wait for ALL of them to finish
+        const emailSummaries = await Promise.all(summaryPromises);
+        emailSummaries.forEach((summary, index) => {
+          console.log(`${index + 1}. ${summary}`);
+});
     }
   }
 );
 });
-
-
-chrome.runtime.sendMessage(
-    {type:"CHECK_AUTH"},
-    (response)=>{
-    if(response.authenticated){
-        showStatus("Already logged in",true);
-    }else{
-         showStatus("NOT LOGGED IN",false);
-
-    }
-}
-    
-
-);
-
-
-// //fucntion getHeader()
-function getHeader(headers, headerName) {
-  const header = headers.find(h => h.name === headerName);
-  return header ? header.value : 'Unknown';
-}
 
 // //fucntion getEmaillength()
 // if email exsit , display how many email received in the last 6 hou using by looking returning how many email id received using .length

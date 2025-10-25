@@ -1,6 +1,6 @@
 // callAPI.js
 // Purpose: All Gmail API interactions
-
+import { getTime } from "./utils";
 // ==========================================
 // FUNCTION 1: Get Auth Token
 // Use chrome.identity API, NOT storage
@@ -19,18 +19,9 @@ export async function getAuthToken() {
   });
 }
 
-// ==========================================
-// FUNCTION 2: Calculate 6 hours ago timestamp
-// ==========================================
-function getTime() {
-  const sixHours = new Date();
-  sixHours.setHours(sixHours.getHours() - 6);
-  return Math.floor(sixHours.getTime() / 1000);
-}
 
-// ==========================================
 // FUNCTION 3: Fetch Email IDs
-// ==========================================
+
 export async function getEmailIDs(token) {
   const time = getTime();
   
@@ -110,3 +101,15 @@ export async function fetchAllEmails() {
     throw error;
   }
 }
+
+export async function callGeminiAPI(prompt) {
+  // 1. Set up fetch request
+  // 2. Send to Gemini endpoint
+  // 3. Get response
+  // 4. Return raw response
+  return response;
+}
+
+
+//CALL GEMINI API FOR EMAIL SUMMARIZATION
+

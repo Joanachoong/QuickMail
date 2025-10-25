@@ -70,23 +70,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   
   // Request 3: Force refresh
-  if (message.type === "REFRESH_EMAILS") {
-    refreshEmails()
-      .then(() => {
-        sendResponse({ 
-          success: true, 
-          emails: cachedEmails || []
-        });
-      })
-      .catch(error => {
-        sendResponse({ 
-          success: false, 
-          error: error.message 
-        });
-      });
+  // if (message.type === "REFRESH_EMAILS") {
+  //   refreshEmails()
+  //     .then(() => {
+  //       sendResponse({ 
+  //         success: true, 
+  //         emails: cachedEmails || []
+  //       });
+  //     })
+  //     .catch(error => {
+  //       sendResponse({ 
+  //         success: false, 
+  //         error: error.message 
+  //       });
+  //     });
     
-    return true; // Async response
-  }
+  //   return true; // Async response
+  // }
 
   // Request 3: Force refresh
   if (message.type === "START_AUTH") {
@@ -123,3 +123,4 @@ setInterval(() => {
   console.log("⏰ Auto-refreshing emails...");
   refreshEmails();
 }, 10 * 60 * 1000);
+
