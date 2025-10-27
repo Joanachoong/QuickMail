@@ -1,7 +1,7 @@
 import { decodeBase64 ,stripHTML} from "./utils.js";
 
 
- function extractEmailBody(email){
+function extractEmailBody(email){
 
     // Step 1: Get the base64 data
   
@@ -19,15 +19,29 @@ import { decodeBase64 ,stripHTML} from "./utils.js";
 
 }
 
-function extractSender(email){
+export function extractSender(email){
      return getHeader(email.payload.headers, "From");
 
 }
 
-function extractSubject(email){
+export function extractSubject(email){
      return getHeader(email.payload.headers, "Subject");
 
 
+}
+
+export function transformEmailForStorage(email) {
+  // Extract from Gmail format
+  const sender = extractSender(email);  // Already exists!
+  const subject = extractSubject(email);  // Already exists!
+  
+  // Return clean object
+  return {
+    sender: sender,
+    subject: subject,
+    summary: email.summary || 'No summary available',  // Added by summarizeBatch
+    summarizedWithAI: email.summarizedWithAI || false
+  };
 }
 
 export async function summarizeEmail(email){

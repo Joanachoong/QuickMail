@@ -1,5 +1,7 @@
 //to coomunicate with background 
 import { downloadSummaryAI ,createSummarizer,summarizeBatch} from "./chromeAI.js";
+import voiceService from './voice.js';
+import { extractSender,extractSubject } from "./emailProcessor.js";
 
 //get DOM element 
 
@@ -10,10 +12,26 @@ const statusDiv = document.getElementById('status');
 const myDate = new Date(); // Example Date object
 const unixTimestampFromDate = Math.floor(myDate.getTime() / 1000);
 console.log("the current time iis",unixTimestampFromDate);
+
+
 // a function to show the message status 
 function showStatus(message, isSucess){
     statusDiv.textContent=message;
     statusDiv.className=isSucess?'success':'error';
+}
+
+
+// get summary 
+async function getSummariesFromStorage() {
+  const result = await chrome.storage.local.get('summaries');
+  
+  if (!result.summaries) {
+    console.warn('⚠️ No summaries in storage');
+    return [];
+  }
+  
+  console.log('📦 Retrieved', result.summaries.length, 'summaries from storage');
+  return result.summaries;
 }
 
 //LOGIN BUTTON
@@ -37,8 +55,14 @@ loginBtn.addEventListener('click',async()=>{
   );
 });
 
-//CHECK AUTH BUTTON
 
+//TEST SUMMARY BUTTON and VOICE
+testBtn.addEventListener('click', async () => {
+  const summaries = await getSummariesFromStorage();
+  console.log('Retrieved:', summaries);
+});
+
+//CHECK AUTH BUTTON AND CREATE SUMMARY AND STORE THE SUMMARY INTO CHROME.LOCAL.STORAGE.SET
 checkAuthBtn.addEventListener('click',async()=>{
     //message show button was clicked 
     console.log("Button clicked");
@@ -85,7 +109,7 @@ showStatus("AI ready! Fetching emails...", true);
   { type: "GET_EMAILS" },  
   async(response) => {
     if (response.success) {
-      const emails = response.emails;  
+      const emails = response.emails;  // get email from Gmail API
       console.log("Got emails:", emails);
       
       if (emails.length === 0) {
@@ -96,8 +120,9 @@ showStatus("AI ready! Fetching emails...", true);
       showStatus(`Summarizing ${emails.length} emails...`, true);
       
       // ✅ NEW: Create summarizer instance
-      const summarizer = await createSummarizer();
+      const summarizer = await createSummarizer(); // call the summarizerAPI
       
+      //summarizer failed to load
       if (!summarizer) {
         showStatus("Failed to create summarizer", false);
         return;
@@ -111,6 +136,21 @@ showStatus("AI ready! Fetching emails...", true);
       summarizedEmails.forEach((email, index) => {
         console.log(`${index + 1}. ${email.summary}`);
       });
+
+          const cleanSummaries = summarizedEmails.map(email => ({
+        sender: extractSender(email),      // Extract from headers
+        subject: extractSubject(email),    // Extract from headers
+        summary: email.summary             // Already at top level
+      }));
+
+      // STORE: Summary , sender ad subject 
+      await chrome.storage.local.set({ 
+        summaries: cleanSummaries,
+        count: cleanSummaries.length,      // Optional: store count
+        lastUpdated: new Date().toISOString()  // Optional: timestamp
+      });
+
+      
     } else {
       showStatus("Failed to fetch emails", false);
     }
