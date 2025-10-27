@@ -1,5 +1,5 @@
-import { decodeBase64 ,stripHTML} from "./utils";
-import { callGeminiAPI } from "./callAPI";
+import { decodeBase64 ,stripHTML} from "./utils.js";
+
 
  function extractEmailBody(email){
 
@@ -38,10 +38,9 @@ export async function summarizeEmail(email){
   
   // Build prompt and call Gemini
   const prompt = `Summarize in 10 seconds: From ${sender}, Subject: ${subject}, Body: ${body}`;
-  const summary = await callGeminiAPI(prompt);
   
   // Format and return
-  return `[${sender}] sent [${subject}] about [${summary}]`;
+  return `This is a sample`;
 
 }
 function categorizeEmail(){

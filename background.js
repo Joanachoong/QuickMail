@@ -1,7 +1,7 @@
 // background.js
 // Purpose: Chrome extension background logic
 
-import { fetchAllEmails } from './callAPI.js';
+import { fetchAllEmails } from './callEmailAPI.js';
 
 // Store emails in memory
 let cachedEmails = null;

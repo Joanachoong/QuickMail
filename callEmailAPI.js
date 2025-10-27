@@ -1,6 +1,6 @@
 // callAPI.js
 // Purpose: All Gmail API interactions
-import { getTime } from "./utils";
+import { getTime } from "./utils.js";
 // ==========================================
 // FUNCTION 1: Get Auth Token
 // Use chrome.identity API, NOT storage
@@ -101,15 +101,3 @@ export async function fetchAllEmails() {
     throw error;
   }
 }
-
-export async function callGeminiAPI(prompt) {
-  // 1. Set up fetch request
-  // 2. Send to Gemini endpoint
-  // 3. Get response
-  // 4. Return raw response
-  return response;
-}
-
-
-//CALL GEMINI API FOR EMAIL SUMMARIZATION
-
