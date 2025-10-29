@@ -1,3 +1,4 @@
+/*-------------GLOBAL SETTING------------*/
 html, body {
   width: 300px;
   height: 450px;
@@ -5,7 +6,11 @@ html, body {
   padding: 0;
   overflow: hidden;
 }
-
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
 body {
   font-family: 'IBM Plex Sans Hebrew', sans-serif;
@@ -13,7 +18,7 @@ body {
 }
 
 .page.hidden {
-  display: none;
+  display:  none !important;
 }
 
 .page.active {
@@ -28,19 +33,62 @@ button {
   cursor: pointer;
 }
 
+/*  ---------------SIGN-IN PAGE-------------*/
+
+#page-signin {
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px; /* Space between header section and button */
+  height: 100%;    
+}
+
+/* Header container: Logo TOP, WELCOME BOTTOM (stacked) */
+.signin-header {
+  display: flex;
+  flex-direction: column; /* CHANGED: Stack vertically */
+  align-items: center; /* Center horizontally */
+  gap: 1px; /* Space between logo and text */
+
+}
+
+/* Logo styling */
+#page-signin img {
+  width: 78px;
+  height: 82px;
+  object-fit: contain;
+  animation: fadeInScale 0.6s ease;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* WELCOME title */
 #signinTitle {
-  font-size: 32px;
-  font-weight: 700;
-  color: #000000; /* Black text */
-  letter-spacing: 3px;
+  font-size: 43px;
+  font-weight: bold;
+  color: #000000;
+  letter-spacing: 1px;
   text-transform: uppercase;
   margin: 0;
+  text-align: center; /* Center the text */
   animation: fadeIn 0.8s ease 0.2s both;
 }
+
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(10px); /* CHANGED: Move from bottom up */
   }
   to {
     opacity: 1;
@@ -48,60 +96,78 @@ button {
   }
 }
 
+/* Login button */
 #loginBtn {
-  /* Colors */
-  background-color: #000000; /* Black background */
-  color: #FFFFFF; /* White text */
-  
-  /* Size and spacing */
+  background-color: #000000;
+  color: #FFFFFF;
   padding: 16px 40px;
   min-width: 220px;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 600;
-  
-  /* Border and shape */
   border: none;
-  border-radius: 30px; /* Pill shape */
-  
-  /* Font */
+  border-radius: 30px;
   font-family: 'IBM Plex Sans Hebrew', Arial, sans-serif;
   text-transform: capitalize;
-  
-  /* Interaction */
   cursor: pointer;
   transition: all 0.3s ease;
-  
-  /* Shadow for depth */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  
-  /* Animation */
   animation: fadeIn 1s ease 0.4s both;
 }
 
-/* Button hover effect */
 #loginBtn:hover {
-  background-color: #1a1a1a; /* Slightly lighter black */
-  transform: translateY(-3px); /* Lift up */
+  background-color: #1a1a1a;
+  transform: translateY(-3px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
-/* Button active (being clicked) effect */
 #loginBtn:active {
-  transform: translateY(0); /* Press down */
+  transform: translateY(0);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-
-#page-signin {
-  padding: 40px 20px;
-  gap: 30px; /* Space between logo, title, button */
+#loginBtn:disabled {
+  background-color: #666666;
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
 }
 
-/* Logo styling */
-#page-signin img {
-  width: 120px;
-  height: 120px;
-  object-fit: contain;
-  margin-bottom: 5px;
-  animation: fadeInScale 0.6s ease;
+/*--------------------------LOADING PAGE----------------*/
+
+#page-loading{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height:100%;
+
+}
+
+#page-loading p{
+  font-size: 16px;
+  font-family: 'IBM Plex Sans Hebrew', Arial, sans-serif;
+  text-align:center;
+  
+}
+
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 6px solid #000000;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+
+.percentage {
+  font-size: 48px;
+  font-weight: bold;
+  color: #000000;
+  margin: 20px 0;
+  font-family: 'IBM Plex Sans Hebrew', Arial, sans-serif;
 }

@@ -29,3 +29,65 @@ export function getTime() {
 function getTimeStatus(){
   return Math.floor()
 }
+
+// utils.js - YOU fill in the logic
+
+// Function 1: Hide ALL pages
+export function hideAllPages() {
+
+  const pages = document.querySelectorAll('.page');
+  
+  // Loop through each page
+  // 'page' is the current element in the loop
+  pages.forEach(page => {
+    // Remove the 'active' class if it exists
+    page.classList.remove('active');
+    
+    // Add the 'hidden' class
+    page.classList.add('hidden');
+  });
+  
+  console.log('✅ All pages hidden');
+}
+
+// Function 2: Show ONE specific page
+export function showPage(pageId) {
+
+  hideAllPages();
+
+  // get the specofic page 
+  const page = document.getElementById(pageId);
+
+  //check if page exist 
+  if (!page) {
+    console.error(`❌ Page with ID '${pageId}' not found!`);
+    return;  // Exit the function early
+  }
+  
+  // STEP 4: Show the page
+  page.classList.remove('hidden');  // Remove hidden class
+  page.classList.add('active');     // Add active class
+  
+  console.log(`✅ Showing page: ${pageId}`);
+
+}
+
+// Function 3: Update progress percentage
+export function updateProgress(percentage) {
+  
+  // Get ONE element by class name (first match)
+  const percentageElement = document.querySelector('.percentage');
+
+  //check if the percentage exisst 
+  if (!percentageElement) {
+    console.error('❌ Percentage element not found!');
+    return;
+  }
+  
+  // Update the text content
+  // We add '%' symbol after the number
+  percentageElement.textContent = `${percentage}%`;
+  
+  console.log(`📊 Progress updated: ${percentage}%`);
+ 
+}

@@ -5,12 +5,7 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
- 
-  
   <div id="status"></div>
-  
-  
- 
   
   <!-- Page 1: Sign In -->
 <div id="page-signin" class="page active">
@@ -22,13 +17,33 @@
 
 <!-- Page 2: Loading -->
 <div id="page-loading" class="page hidden">
-  <!-- Loading animation, percentage go here -->
-   <button id="checkAuthBtn">check Authentication</button>
+  <div class="spinner"></div>
+    <div class="percentage">30%</div>
+    <p>Please wait while we are processing your email...</p>
 
 </div>
 
 <!-- Page 3: Voice Playing -->
 <div id="page-voice" class="page hidden">
+  <h2>Speaking...</h2>
+    
+    <!-- Speaking indicator (animated sound bars) -->
+    <div class="speaking-indicator">
+      <div class="sound-bar"></div>
+      <div class="sound-bar"></div>
+      <div class="sound-bar"></div>
+      <div class="sound-bar"></div>
+      <div class="sound-bar"></div>
+      <div class="sound-bar"></div>
+    </div>
+    
+    <!-- Voice control buttons -->
+    <div class="voice-controls">
+      <button id="testBtn">Start Reading</button>
+      <button id="pauseBtn">Pause</button>
+      <button id="resumeBtn">Resume</button>
+      <button id="stopBtn">Stop</button>
+    </div>
   <!-- Speaking animation, pause button go here -->
    <button id="pauseBtn">Pauses</button>
   <button id="resumeBtn">Resume</button>
