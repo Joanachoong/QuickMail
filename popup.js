@@ -1,6 +1,6 @@
 //to coomunicate with background 
 import { downloadSummaryAI ,createSummarizer,summarizeBatch} from "./chromeAI.js";
-import voiceService from './voice.js';
+import { VoiceService } from './voice.js';
 import { extractSender,extractSubject } from "./emailProcessor.js";
 
 //get DOM element 
@@ -8,6 +8,9 @@ import { extractSender,extractSubject } from "./emailProcessor.js";
 const loginBtn = document.getElementById('loginBtn');
 const checkAuthBtn = document.getElementById('checkAuthBtn');
 const statusDiv = document.getElementById('status');
+const testBtn= document.getElementById('testBtn');
+const pauseBtn= document.getElementById('pauseBtn');
+const resumeBtn=document.getElementById('resumeBtn');
 
 const myDate = new Date(); // Example Date object
 const unixTimestampFromDate = Math.floor(myDate.getTime() / 1000);
@@ -55,12 +58,78 @@ loginBtn.addEventListener('click',async()=>{
   );
 });
 
-
+const voice = new VoiceService();
 //TEST SUMMARY BUTTON and VOICE
 testBtn.addEventListener('click', async () => {
+
+  try{
+    
+  //get sumaries 
   const summaries = await getSummariesFromStorage();
   console.log('Retrieved:', summaries);
+
+  // Step 2: Validate summaries exist
+  if(summaries.length===0){
+    const popupMsg="There is no message";
+    await voice.speakText(popupMsg);
+    showStatus(popupMsg);
+  }else{
+    // Step 5: Speak summaries
+    voice.speakSummaries(summaries);
+  }
+
+  }catch(error){
+    console.error("Something goes wrong , please try again later ",error.message);
+    showStatus("Something goes wrong , please try again later ",false);
+  }
+  
 });
+pauseBtn.disabled = true;   // Can't pause when nothing is speaking
+resumeBtn.disabled = true;
+
+//PAYSE THE OVICE WHEN USER CLICK IT 
+pauseBtn.addEventListener('click',async() =>{
+  console.log("pause button clicked");
+  // Try to pause the speech
+  const success = voice.pauseSpeaking();
+  
+  if (success) {
+    // Successfully paused
+    showStatus("Speech paused", true);
+    
+    pauseBtn.disabled = true;   // Disable pause (already paused)
+    resumeBtn.disabled = false; // Enable resume (can now resume)
+  } else {
+    // Failed to pause (nothing was speaking or already paused)
+    showStatus("Cannot pause - not speaking", false);
+  }
+
+
+});
+
+resumeBtn.addEventListener('click',async()=>{
+  console.log('Resume button clicked');
+  
+  // Try to resume the speech
+  const success = voice.resumeSpeaking();
+  
+  if (success) {
+    // Successfully resumed
+    showStatus("Speech resumed", true);
+    
+    // Update button states
+    // WHY: Now that we're speaking again, user should be able to pause but not resume
+    pauseBtn.disabled = false;  // Enable pause (can pause again)
+    resumeBtn.disabled = true;  // Disable resume (already resumed)
+  } else {
+    // Failed to resume (nothing was paused)
+    showStatus("Cannot resume - not paused", false);
+  }
+
+});
+
+
+
 
 //CHECK AUTH BUTTON AND CREATE SUMMARY AND STORE THE SUMMARY INTO CHROME.LOCAL.STORAGE.SET
 checkAuthBtn.addEventListener('click',async()=>{

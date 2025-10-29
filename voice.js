@@ -185,6 +185,31 @@ export class VoiceService {
     }
   }
 
+  pauseSpeaking() {
+  // QUESTION: Why check both conditions?
+  if (this.tts && this.tts.speaking && !this.tts.paused) {
+    this.tts.pause();
+    console.log('⏸️ Speech paused');
+    return true;  // Successfully paused
+  }
+  console.warn('⚠️ Cannot pause: not speaking or already paused');
+  return false;  // Couldn't pause
+}
+
+/**
+ * Resume the paused speech
+ */
+resumeSpeaking() {
+  // QUESTION: Why check both conditions?
+  if (this.tts && this.tts.paused) {
+    this.tts.resume();
+    console.log('▶️ Speech resumed');
+    return true;  // Successfully resumed
+  }
+  console.warn('⚠️ Cannot resume: not paused');
+  return false;  // Couldn't resume
+}
+
   /**
    * Pause execution for specified milliseconds
    * WHY: Creates natural pauses between emails
