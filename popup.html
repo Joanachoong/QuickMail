@@ -5,15 +5,36 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <h2>Email Voice Assistant</h2>
+ 
   
   <div id="status"></div>
   
-  <button id="loginBtn">Login with Gmail</button>
-  <button id="checkAuthBtn">check Authentication</button>
-  <button id="checkEmailBtn">check Email</button>
-  <button id="testBtn">test Email</button>
-  <button id="pauseBtn">Pauses</button>
+  
+ 
+  
+  <!-- Page 1: Sign In -->
+<div id="page-signin" class="page active">
+  <!-- Logo, welcome text, button go here -->
+   <img src="./icons/QuickMail_logo_extension.png">
+    <h2 id="signinTitle">WELCOME</h2>
+   <button id="loginBtn">Login with Gmail</button>
+</div>
+
+<!-- Page 2: Loading -->
+<div id="page-loading" class="page hidden">
+  <!-- Loading animation, percentage go here -->
+   <button id="checkAuthBtn">check Authentication</button>
+
+</div>
+
+<!-- Page 3: Voice Playing -->
+<div id="page-voice" class="page hidden">
+  <!-- Speaking animation, pause button go here -->
+   <button id="pauseBtn">Pauses</button>
+  <button id="resumeBtn">Resume</button>
+   <button id="testBtn">test Email</button>
+
+</div>
   
   <script type="module" src="popup.js"></script>
 </body>

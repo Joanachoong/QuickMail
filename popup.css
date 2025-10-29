@@ -1,7 +1,23 @@
-body {
+html, body {
   width: 300px;
-  padding: 20px;
-  font-family: Arial, sans-serif;
+  height: 450px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+
+body {
+  font-family: 'IBM Plex Sans Hebrew', sans-serif;
+  background-color: #F8F801;
+}
+
+.page.hidden {
+  display: none;
+}
+
+.page.active {
+  display: flex;
 }
 
 button {
@@ -12,18 +28,80 @@ button {
   cursor: pointer;
 }
 
-#status {
-  padding: 10px;
-  margin: 10px 0;
-  border-radius: 5px;
+#signinTitle {
+  font-size: 32px;
+  font-weight: 700;
+  color: #000000; /* Black text */
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin: 0;
+  animation: fadeIn 0.8s ease 0.2s both;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.success {
-  background-color: #d4edda;
-  color: #155724;
+#loginBtn {
+  /* Colors */
+  background-color: #000000; /* Black background */
+  color: #FFFFFF; /* White text */
+  
+  /* Size and spacing */
+  padding: 16px 40px;
+  min-width: 220px;
+  font-size: 16px;
+  font-weight: 600;
+  
+  /* Border and shape */
+  border: none;
+  border-radius: 30px; /* Pill shape */
+  
+  /* Font */
+  font-family: 'IBM Plex Sans Hebrew', Arial, sans-serif;
+  text-transform: capitalize;
+  
+  /* Interaction */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  /* Shadow for depth */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  
+  /* Animation */
+  animation: fadeIn 1s ease 0.4s both;
 }
 
-.error {
-  background-color: #f8d7da;
-  color: #721c24;
+/* Button hover effect */
+#loginBtn:hover {
+  background-color: #1a1a1a; /* Slightly lighter black */
+  transform: translateY(-3px); /* Lift up */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Button active (being clicked) effect */
+#loginBtn:active {
+  transform: translateY(0); /* Press down */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+
+#page-signin {
+  padding: 40px 20px;
+  gap: 30px; /* Space between logo, title, button */
+}
+
+/* Logo styling */
+#page-signin img {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  margin-bottom: 5px;
+  animation: fadeInScale 0.6s ease;
 }

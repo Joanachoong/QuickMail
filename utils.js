@@ -25,3 +25,7 @@ export function getTime() {
   sixHours.setHours(sixHours.getHours() - 6);
   return Math.floor(sixHours.getTime() / 1000);
 }
+
+function getTimeStatus(){
+  return Math.floor()
+}
