@@ -8,7 +8,7 @@
   <div id="status"></div>
   
   <!-- Page 1: Sign In -->
-<div id="page-signin" class="page active">
+<div id="page-signin" class="page hidden">
   <!-- Logo, welcome text, button go here -->
    <img src="./icons/QuickMail_logo_extension.png">
     <h2 id="signinTitle">WELCOME</h2>
@@ -17,14 +17,21 @@
 
 <!-- Page 2: Loading -->
 <div id="page-loading" class="page hidden">
-  <div class="spinner"></div>
+  <div class="loading-bars">
+  <div class="bar"></div>
+  <div class="bar"></div>
+  <div class="bar"></div>
+  <div class="bar"></div>
+  <div class="bar"></div>
+  <div class="bar"></div>
+</div>
     <div class="percentage">30%</div>
     <p>Please wait while we are processing your email...</p>
 
 </div>
 
 <!-- Page 3: Voice Playing -->
-<div id="page-voice" class="page hidden">
+<div id="page-voice" class="page active">
   <h2>Speaking...</h2>
     
     <!-- Speaking indicator (animated sound bars) -->
