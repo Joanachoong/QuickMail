@@ -36,27 +36,23 @@
     <!-- Speaking indicator (animated sound bars) -->
     <div class="sound-bars">
       <div class="sound-bar"></div>
-      
       <div class="sound-bar"></div>
       <div class="sound-bar"></div>
-     
      <div class="sound-bar"></div>
     </div>
 
     
-    <p class="voice-status">Speaking.....</p>
+    <p id="voice-status">Speaking.....</p>
     
     
     <!-- Voice control buttons -->
     <div class="voice-controls">
-      <button id="testBtn">Start Reading</button>
-      <button id="pauseBtn">Pause</button>
-      <button id="resumeBtn">Resume</button>
-      <button id="stopBtn">Stop</button>
-    </div>
-  <!-- Speaking animation, pause button go here -->
-   <button id="testBtn">test Email</button>
+  <!-- <button id="testBtn">Start Reading</button> -->
 
+  <!-- Single play/pause button that matches the design -->
+  <button id="playPauseBtn" class="play-pause" aria-pressed="false" title="Pause / Resume">
+    <span class="icon" aria-hidden="true"></span>
+  </button>
 </div>
   
   <script type="module" src="popup.js"></script>

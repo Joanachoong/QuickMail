@@ -203,7 +203,7 @@ background: #000;
 
 /*-------------VOICE PAGE-----------------*/
 
-
+/*-------------VOICE ANIMATION-----------------*/
 #page-voice{
   display: flex;
   flex-direction: column;
@@ -239,7 +239,6 @@ background: #000;
   0%,100% {
          height: 20px;
          top:0px
-        
      }
      25% {
          height: 20px;
@@ -248,12 +247,10 @@ background: #000;
      50% {
          height: 25px;
          top: -10px; /* moved up */
-        
      }
      75% {
          height: 20px; 
          top: -20px;
-        
      }
 }
 
@@ -298,7 +295,6 @@ background: #000;
      
 }
 
-
 @keyframes voice-pulse-4 {
    0%,100% {
          height: 20px;
@@ -321,9 +317,6 @@ background: #000;
      }
 }
 
-
-/* ... and so on for 7 different patterns */
-
 .sound-bar:nth-child(1) { 
   animation-delay: 0s; 
   animation-name: voice-pulse-1;
@@ -340,4 +333,87 @@ background: #000;
    animation-name: voice-pulse-4;
 } 
 
+/*-------------VOICE STATUS-----------------*/
+#voice-status{
+  font-size: 20px;
+  font-weight: bold;
+  color: #000000;
+  margin: 20px 0;
+  font-family: 'IBM Plex Sans Hebrew', Arial, sans-serif;
 
+}
+
+
+/*-------------VOICE BUTTON-----------------*/
+
+.voice-controls{
+  display: flex;  
+  flex-direction: row; 
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+}
+/* Play / Pause circular button (visual from your screenshot) */
+.play-pause {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: #000;               /* black circle */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: transform .12s ease;
+  margin: 20px auto; 
+}
+
+.play-pause:active { transform: scale(.96); }
+.play-pause:focus { outline: 3px solid rgba(0,0,0,0.12); }
+
+/* inner icon container — we draw play and pause with CSS */
+.play-pause .icon {
+  width: 24px;
+  height: 24px;
+  display: block;
+  position: relative;
+  align-items: center;     /* center internal content */
+}
+
+/* PLAY icon (default) — a yellow triangle centered inside the black circle */
+.play-pause .icon::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* create a triangle via clip-path */
+  background: #F8F801; /* yellow triangle */
+  clip-path: polygon(10% 5%, 90% 50%, 10% 95%);
+  transition: opacity .12s ease, transform .12s ease;
+  transform-origin: 50% 50%;
+  opacity: 1;
+}
+
+/* PAUSE icon made of two vertical bars; hidden by default */
+.play-pause .icon::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  display: block;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity .12s ease, transform .12s ease;
+  background: linear-gradient(90deg, transparent 0 36%, #F8F801 36% 44%, transparent 44% 56%, #F8F801 56% 64%, transparent 64% 100%);
+  /* The gradient creates two narrow yellow bars (pause) */
+}
+
+/* When paused — hide triangle, show pause bars */
+.play-pause.paused .icon::before {
+  opacity: 0;
+  transform: scale(0.8);
+}
+.play-pause.paused .icon::after {
+  opacity: 1;
+  transform: scale(1);
+}

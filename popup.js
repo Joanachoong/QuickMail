@@ -10,12 +10,13 @@ const loginBtn = document.getElementById('loginBtn');
 const checkAuthBtn = document.getElementById('checkAuthBtn');
 const statusDiv = document.getElementById('status');
 const testBtn= document.getElementById('testBtn');
-const pauseBtn= document.getElementById('pauseBtn');
-const resumeBtn=document.getElementById('resumeBtn');
+let playPauseBtn = document.getElementById('playPauseBtn') || document.querySelector('.play-pause');
+const stopBtn = document.getElementById('stopBtn');
+
 
 const myDate = new Date(); // Example Date object
 const unixTimestampFromDate = Math.floor(myDate.getTime() / 1000);
-console.log("the current time iis",unixTimestampFromDate);
+console.log("the current time is",unixTimestampFromDate);
 
 
 
@@ -185,72 +186,93 @@ loginBtn.addEventListener('click',async()=>{
 });
 
 const voice = new VoiceService();
-//TEST SUMMARY BUTTON and VOICE
-testBtn.addEventListener('click', async () => {
+// TEST SUMMARY + VOICE
+if (testBtn) {
+  testBtn.addEventListener('click', async () => {
+    try {
+      const summaries = await getSummariesFromStorage();
+      console.log('Retrieved summaries count:', summaries.length);
 
-  try{
-    
-  //get sumaries 
-  const summaries = await getSummariesFromStorage();
-  console.log('Retrieved:', summaries);
+      if (summaries.length === 0) {
+        const popupMsg = "There is no message";
+        await voice.speakText(popupMsg);
+        showStatus(popupMsg);
+      } else {
+        voice.speakSummaries(summaries);
+        // enable play/pause once speaking started
+        if (playPauseBtn) {
+          playPauseBtn.disabled = false;
+          playPauseBtn.classList.remove('paused');
+          playPauseBtn.setAttribute('aria-pressed', 'false');
+        } else {
+          console.warn('playPauseBtn not found at time of enabling');
+        }
+      }
+    } catch (error) {
+      console.error("Something went wrong:", error);
+      showStatus("Something went wrong, please try again later", false);
+    }
+  });
+} else {
+  console.warn('testBtn not found in DOM - cannot start reading');
+}
 
-  // Step 2: Validate summaries exist
-  if(summaries.length===0){
-    const popupMsg="There is no message";
-    await voice.speakText(popupMsg);
-    showStatus(popupMsg);
-  }else{
-    // Step 5: Speak summaries
-    voice.speakSummaries(summaries);
-  }
+// Ensure button default state (if exists)
+if (playPauseBtn) {
+  playPauseBtn.disabled = true; // disabled until speaking begins
+  playPauseBtn.classList.remove('paused');
+  playPauseBtn.setAttribute('aria-pressed', 'false');
+}
 
-  }catch(error){
-    console.error("Something goes wrong , please try again later ",error.message);
-    showStatus("Something goes wrong , please try again later ",false);
-  }
-  
-});
-pauseBtn.disabled = true;   // Can't pause when nothing is speaking
-resumeBtn.disabled = true;
+// Single Play/Pause Toggle
+if (playPauseBtn) {
+  playPauseBtn.addEventListener('click', async (ev) => {
+    // prevent clicks when disabled (defensive)
+    if (playPauseBtn.disabled) {
+      console.log('playPauseBtn clicked while disabled - ignoring');
+      return;
+    }
 
-//PAYSE THE OVICE WHEN USER CLICK IT 
-pauseBtn.addEventListener('click',async() =>{
-  console.log("pause button clicked");
-  // Try to pause the speech
-  const success = voice.pauseSpeaking();
-  
-  if (success) {
-    // Successfully paused
-    showStatus("Speech paused", true);
-    
-    pauseBtn.disabled = true;   // Disable pause (already paused)
-    resumeBtn.disabled = false; // Enable resume (can now resume)
-  } else {
-    // Failed to pause (nothing was speaking or already paused)
-    showStatus("Cannot pause - not speaking", false);
-  }
+    const isNowPaused = playPauseBtn.classList.toggle('paused');
+    playPauseBtn.setAttribute('aria-pressed', String(isNowPaused));
+    console.log('playPause clicked, new paused state =', isNowPaused);
 
-
-});
-
-resumeBtn.addEventListener('click',async()=>{
-  console.log('Resume button clicked');
-  
-  // Try to resume the speech
-  const success = voice.resumeSpeaking();
-  
-  if (success) {
-    // Successfully resumed
-    showStatus("Speech resumed", true);
-    
-    // Update button states
-    // WHY: Now that we're speaking again, user should be able to pause but not resume
-    pauseBtn.disabled = false;  // Enable pause (can pause again)
-    resumeBtn.disabled = true;  // Disable resume (already resumed)
-  } else {
-    // Failed to resume (nothing was paused)
-    showStatus("Cannot resume - not paused", false);
-  }
-
-});
-
+    if (isNowPaused) {
+      // Pause action
+      try {
+        const success = voice.pauseSpeaking();
+        console.log('voice.pauseSpeaking() returned:', success);
+        if (success) {
+          showStatus('Speech paused', true);
+        } else {
+          showStatus('Cannot pause - not speaking', false);
+          // revert UI if pause failed
+          playPauseBtn.classList.remove('paused');
+          playPauseBtn.setAttribute('aria-pressed', 'false');
+        }
+      } catch (err) {
+        console.error('Error while pausing:', err);
+        showStatus('Error while pausing', false);
+      }
+    } else {
+      // Resume action
+      try {
+        const success = voice.resumeSpeaking();
+        console.log('voice.resumeSpeaking() returned:', success);
+        if (success) {
+          showStatus('Speech resumed', true);
+        } else {
+          showStatus('Cannot resume - not paused', false);
+          // revert UI if resume failed
+          playPauseBtn.classList.add('paused');
+          playPauseBtn.setAttribute('aria-pressed', 'true');
+        }
+      } catch (err) {
+        console.error('Error while resuming:', err);
+        showStatus('Error while resuming', false);
+      }
+    }
+  });
+} else {
+  console.warn('playPauseBtn not present - play/pause feature disabled');
+}
