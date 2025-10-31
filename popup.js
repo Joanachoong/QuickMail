@@ -1,17 +1,20 @@
 //to coomunicate with background 
 import { downloadSummaryAI ,createSummarizer,summarizeBatch} from "./chromeAI.js";
 import { VoiceService } from './voice.js';
-import { extractSender,extractSubject } from "./emailProcessor.js";
-import { hideAllPages, showPage, updateProgress, cleanSummaryText } from './utils.js';
+import { extractSender,
+  extractSubject,
+ // NEW: Import categorization functions
+ filterJunkEmails,
+ sortEmailsByPriority,
+ groupEmailsByCategory,
+ getEmailCountSummary } from "./emailProcessor.js";
+import { showPage, updateProgress, cleanSummaryText } from './utils.js';
 
 //-------------get DOM element ---------------------
 
 const loginBtn = document.getElementById('loginBtn');
-const checkAuthBtn = document.getElementById('checkAuthBtn');
 const statusDiv = document.getElementById('status');
-const testBtn= document.getElementById('testBtn');
 let playPauseBtn = document.getElementById('playPauseBtn') || document.querySelector('.play-pause');
-const stopBtn = document.getElementById('stopBtn');
 
 
 const myDate = new Date(); // Example Date object
@@ -101,6 +104,15 @@ showStatus("Authentication successful!", true);
     const emails = emailResponse.emails;
     console.log("Got emails:", emails);
 
+    const relevantEmails = filterJunkEmails(emails);
+    const junkCount = emails.length - relevantEmails.length;
+
+    console.log(`📊 Categorization results:`);
+    console.log(`   - Total emails: ${emails.length}`);
+   console.log(`   - Relevant: ${relevantEmails.length}`);
+   console.log(`   - Junk filtered: ${junkCount}`);
+
+
     // Handle case: No emails found
     if (emails.length === 0) {
       updateProgress(100);
@@ -115,6 +127,13 @@ showStatus("Authentication successful!", true);
 
     //CREATE SUMMARIZER INSTANCE
 
+    const sortedEmails = sortEmailsByPriority(relevantEmails);
+   const highPriorityCount = sortedEmails.filter(e => e.priority === 'high').length;
+
+   if (highPriorityCount > 0) {
+     console.log(`🔥 ${highPriorityCount} high priority emails detected`);
+   }
+
     updateProgress(60);
     showStatus(`Creating AI summarizer for ${emails.length} emails...`, true);
     
@@ -127,7 +146,7 @@ showStatus("Authentication successful!", true);
 
     //START SUMMARIZER 
     updateProgress(70);
-    const summarizedEmails = await summarizeBatch(summarizer, emails);
+    const summarizedEmails = await summarizeBatch(summarizer, sortedEmails);
       
       // Display results
       showStatus(`✅ Summarized ${summarizedEmails.length} emails!`, true);
@@ -142,15 +161,24 @@ showStatus("Authentication successful!", true);
      const cleanSummaries = summarizedEmails.map(email => ({
         sender: extractSender(email),      // Extract from headers
         subject: cleanSummaryText(extractSubject(email)),    // Clean subject
-        summary: cleanSummaryText(email.summary)             // Clean summary (remove HTML & emojis)
+        summary: cleanSummaryText(email.summary),          // Clean summary (remove HTML & emojis)
+         category: email.category || 'other',
+    priority: email.priority || 'normal',
+    shouldSkip: email.shouldSkip || false
       }));
 
       console.log('🧹 Cleaned summaries:', cleanSummaries.length, 'emails processed');
+
+      //CATEGORY SUMMARY
+      const categorySummary = getEmailCountSummary(cleanSummaries);
+    console.log('📊 Category breakdown:', categorySummary);
 
       // STORE: Summary , sender ad subject 
       await chrome.storage.local.set({ 
         summaries: cleanSummaries,
         count: cleanSummaries.length,      // Optional: store count
+        junkCount: junkCount,              // NEW: Store how many junk filtered
+      categorySummary: categorySummary, 
         lastUpdated: new Date().toISOString()  // Optional: timestamp
       });
 
@@ -180,6 +208,9 @@ async function autoPlaySummaries() {
   try {
     console.log('🎬 Auto-play triggered');
     
+    // Re-select playPauseBtn to ensure it's available when voice page is shown
+    playPauseBtn = document.getElementById('playPauseBtn') || document.querySelector('.play-pause');
+    
     // Get summaries from storage
     const summaries = await getSummariesFromStorage();
     console.log('📊 Retrieved summaries count:', summaries.length);
@@ -194,10 +225,59 @@ async function autoPlaySummaries() {
       if (playPauseBtn) {
         playPauseBtn.disabled = true;
       }
-    } else {
-      // Start reading summaries automatically
-      console.log('🔊 Starting to speak', summaries.length, 'summaries');
-      voice.speakSummaries(summaries);
+    }
+      else{
+      const stats = await chrome.storage.local.get(['count', 'junkCount', 'categorySummary']);
+      const totalEmails = (stats.count || 0) + (stats.junkCount || 0);
+      const junkFiltered = stats.junkCount || 0;
+      const categorySummary = stats.categorySummary || {};
+
+      console.log('📊 Email stats:', {
+      relevant: stats.count,
+      junk: junkFiltered,
+        categories: categorySummary
+      });
+
+      // NEW: Build opening announcement with category breakdown
+      let openingMessage = `You have ${summaries.length} relevant email${summaries.length > 1 ? 's' : ''}`;
+      
+      if (junkFiltered > 0) {
+        openingMessage += `. ${junkFiltered} promotional email${junkFiltered > 1 ? 's were' : ' was'} filtered out`;
+        }
+      
+      if (categorySummary.highPriority > 0) {
+        openingMessage += `. ${categorySummary.highPriority} ${categorySummary.highPriority > 1 ? 'are' : 'is'} high priority`;
+      }
+      
+      // Add category breakdown (only non-zero categories)
+      const categoryParts = [];
+      if (categorySummary.work > 0) categoryParts.push(`${categorySummary.work} work`);
+      if (categorySummary.school > 0) categoryParts.push(`${categorySummary.school} school`);
+      if (categorySummary.events > 0) categoryParts.push(`${categorySummary.events} event${categorySummary.events > 1 ? 's' : ''}`);
+      if (categorySummary.other > 0) categoryParts.push(`${categorySummary.other} other`);
+        
+      if (categoryParts.length > 0) {
+        openingMessage += `. You have ${categoryParts.join(', ')}`;
+      }
+      
+          console.log('📢 Opening message:', openingMessage);
+          await voice.speakText(openingMessage);
+          await new Promise(resolve => setTimeout(resolve, 800));
+
+          const grouped = groupEmailsByCategory(summaries);
+    
+      console.log('📂 Grouped emails:', {
+          work: grouped.work.length,
+          school: grouped.school.length,
+          events: grouped.events.length,
+          other: grouped.other.length
+        });
+      
+        // NEW: Read emails in category order (Work → School → Events → Other)
+      await readCategoryEmails('Work', grouped.work);
+      await readCategoryEmails('School', grouped.school);
+      await readCategoryEmails('Events', grouped.events);
+      await readCategoryEmails('Other', grouped.other);
       
       // Enable play/pause button once speaking starts
       if (playPauseBtn) {
@@ -210,8 +290,10 @@ async function autoPlaySummaries() {
       }
       
       showStatus(`Speaking ${summaries.length} email summaries...`, true);
-    }
-  } catch (error) {
+
+      }
+     
+    } catch (error) {
     console.error('❌ Auto-play error:', error);
     showStatus('Could not auto-play summaries', false);
     
@@ -221,6 +303,84 @@ async function autoPlaySummaries() {
     }
   }
 }
+
+  async function readCategoryEmails(categoryName, emails) {
+    if (!emails || emails.length === 0) {
+    console.log(`⏭️ Skipping ${categoryName} - no emails`);
+    return;
+    }
+  
+    console.log(`📖 Reading ${categoryName} emails (${emails.length} total)`);
+  
+    // Announce category
+    await voice.speakText(`${categoryName} emails`);
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Separate high priority and normal priority
+    const highPriority = emails.filter(e => e.priority === 'high');
+    const normalPriority = emails.filter(e => e.priority === 'normal');
+    
+    // Read high priority first
+    for (const email of highPriority) {
+      // Check if paused before continuing
+      if (voice.userPaused) {
+        console.log('⏸️ Paused - waiting for resume...');
+        // Wait until resumed
+        while (voice.userPaused) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+      const message = `Urgent. From ${email.sender}. ${email.summary}`;
+    console.log(`🔥 HIGH PRIORITY: ${message}`);
+      try {
+        await voice.speakText(message);
+      } catch (err) {
+        if (err.message === 'Speech is paused by user') {
+          console.log('⏸️ Speech was paused during speakText');
+          // Wait until resumed
+          while (voice.userPaused) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+          // Retry after resume
+          await voice.speakText(message);
+        } else {
+          throw err;
+        }
+      }
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    
+  // Then read normal priority
+    for (const email of normalPriority) {
+      // Check if paused before continuing
+      if (voice.userPaused) {
+        console.log('⏸️ Paused - waiting for resume...');
+        // Wait until resumed
+        while (voice.userPaused) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+      const message = `From ${email.sender}. ${email.summary}`;
+    console.log(`📧 ${message}`);
+      try {
+        await voice.speakText(message);
+      } catch (err) {
+        if (err.message === 'Speech is paused by user') {
+          console.log('⏸️ Speech was paused during speakText');
+          // Wait until resumed
+          while (voice.userPaused) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+          // Retry after resume
+          await voice.speakText(message);
+        } else {
+          throw err;
+        }
+      }
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+  console.log(`✅ Finished reading ${categoryName} emails`);
+  }
 //----------------------------------BUTTON-----------------------------------
 
 //LOGIN BUTTON
@@ -247,38 +407,6 @@ loginBtn.addEventListener('click',async()=>{
 });
 
 const voice = new VoiceService();
-
-// TEST BUTTON (Manual testing - AUTO-PLAY handles normal flow)
-// This button is now optional since auto-play triggers on voice page load
-if (testBtn) {
-  testBtn.addEventListener('click', async () => {
-    try {
-      const summaries = await getSummariesFromStorage(); // Now returns cleaned summaries
-      console.log('🧪 Manual test - Retrieved summaries count:', summaries.length);
-
-      if (summaries.length === 0) {
-        const popupMsg = "There is no message";
-        await voice.speakText(popupMsg);
-        showStatus(popupMsg);
-      } else {
-        voice.speakSummaries(summaries);
-        // enable play/pause once speaking started
-        if (playPauseBtn) {
-          playPauseBtn.disabled = false;
-          playPauseBtn.classList.remove('paused');
-          playPauseBtn.setAttribute('aria-pressed', 'false');
-        } else {
-          console.warn('playPauseBtn not found at time of enabling');
-        }
-      }
-    } catch (error) {
-      console.error("Something went wrong:", error);
-      showStatus("Something went wrong, please try again later", false);
-    }
-  });
-} else {
-  console.log('ℹ️ testBtn not found - using auto-play only');
-}
 
 // Ensure button default state (if exists)
 if (playPauseBtn) {

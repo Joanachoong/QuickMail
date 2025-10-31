@@ -14,6 +14,7 @@ export class VoiceService {
     // Track current utterance for control (pause/resume/stop)
     this.currentUtterance = null;
     this.isSpeaking = false;
+    this.userPaused = false; // Track if user manually paused
     
     // INITIALIZE STT
     // WHY: Chrome uses webkit prefix, so we check for it
@@ -64,6 +65,14 @@ export class VoiceService {
         reject(new Error('Text-to-Speech not supported'));
         return;
       }
+      
+      // If user has paused, reject this call
+      if (this.userPaused) {
+        console.log('⏸️ Skipping speakText - user has paused');
+        reject(new Error('Speech is paused by user'));
+        return;
+      }
+      
       // Cancel any ongoing speech before starting new one
       // WHY: Prevents overlap and ensures clean start
       this.stopSpeaking();
@@ -96,8 +105,11 @@ export class VoiceService {
       // Event: When speech ends successfully
       utterance.onend = (event) => {
         console.log('✅ Finished speaking');
-        this.isSpeaking = false;
-        this.currentUtterance = null;
+        // Only reset state if not user-paused (user might resume)
+        if (!this.userPaused) {
+          this.isSpeaking = false;
+          this.currentUtterance = null;
+        }
         if (options.onEnd) options.onEnd(event);
         resolve();
       };
@@ -177,37 +189,64 @@ export class VoiceService {
    * Stop current speech immediately
    */
   stopSpeaking() {
-    if (this.tts && this.isSpeaking) {
+    if (this.tts && (this.isSpeaking || this.tts.speaking || this.tts.pending)) {
       this.tts.cancel();  // Stops all queued utterances
       this.isSpeaking = false;
       this.currentUtterance = null;
+      this.userPaused = false;
       console.log('🛑 Speech stopped');
     }
   }
 
   pauseSpeaking() {
-  // QUESTION: Why check both conditions?
-  if (this.tts && this.tts.speaking && !this.tts.paused) {
-    this.tts.pause();
-    console.log('⏸️ Speech paused');
-    return true;  // Successfully paused
+  // Check if TTS is supported
+  if (!this.tts) {
+    console.warn('⚠️ TTS not available');
+    return false;
   }
-  console.warn('⚠️ Cannot pause: not speaking or already paused');
-  return false;  // Couldn't pause
+
+  // Mark as user-paused FIRST - this prevents new utterances
+  this.userPaused = true;
+
+  // Cancel ALL current speech (more reliable than pause)
+  if (this.tts.speaking || this.tts.pending || this.isSpeaking) {
+    try {
+      this.tts.cancel(); // Cancel all queued and current utterances
+      this.isSpeaking = false;
+      this.currentUtterance = null;
+      console.log('⏸️ Speech paused and canceled', {
+        wasSpeaking: this.tts.speaking,
+        hadUtterance: !!this.currentUtterance
+      });
+      return true;
+    } catch (err) {
+      console.error('❌ Error canceling speech:', err);
+      // Still keep userPaused = true to block new utterances
+      return true;
+    }
+  }
+
+  // If nothing is speaking, we still mark as paused to block future utterances
+  console.log('⏸️ Marked as paused (will block future utterances)');
+  return true;
 }
 
 /**
  * Resume the paused speech
  */
 resumeSpeaking() {
-  // QUESTION: Why check both conditions?
-  if (this.tts && this.tts.paused) {
-    this.tts.resume();
-    console.log('▶️ Speech resumed');
-    return true;  // Successfully resumed
+  if (!this.tts) {
+    console.warn('⚠️ TTS not available');
+    return false;
   }
-  console.warn('⚠️ Cannot resume: not paused');
-  return false;  // Couldn't resume
+
+  // Clear user-paused flag - this allows new speakText() calls
+  this.userPaused = false;
+  console.log('▶️ Resume flag cleared - new speech will be allowed');
+  
+  // Note: Since we canceled speech on pause, there's nothing to resume
+  // The calling code should continue from where it left off
+  return true;
 }
 
   /**
