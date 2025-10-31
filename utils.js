@@ -91,3 +91,36 @@ export function updateProgress(percentage) {
   console.log(`📊 Progress updated: ${percentage}%`);
  
 }
+
+// CLEAN SUMMARY TEXT: Remove HTML tags and emojis
+ export function cleanSummaryText(text) {
+ if (!text) return '';
+ 
+  let cleaned = text;
+ 
+ // STEP 1: Remove HTML tags (like <p>, </p>, <br>, etc.)
+ // This regex matches anything between < and >
+  cleaned = cleaned.replace(/<[^>]*>/g, '');
+ 
+ // STEP 2: Remove emojis
+ // This regex matches most emoji characters
+  cleaned = cleaned.replace(/[\u{1F600}-\u{1F64F}]/gu, ''); // Emoticons
+ cleaned = cleaned.replace(/[\u{1F300}-\u{1F5FF}]/gu, ''); // Misc Symbols and Pictographs
+  cleaned = cleaned.replace(/[\u{1F680}-\u{1F6FF}]/gu, ''); // Transport and Map
+  cleaned = cleaned.replace(/[\u{1F1E0}-\u{1F1FF}]/gu, ''); // Flags
+  cleaned = cleaned.replace(/[\u{2600}-\u{26FF}]/gu, '');   // Misc symbols
+  cleaned = cleaned.replace(/[\u{2700}-\u{27BF}]/gu, '');   // Dingbats
+  cleaned = cleaned.replace(/[\u{FE00}-\u{FE0F}]/gu, '');   // Variation Selectors
+  cleaned = cleaned.replace(/[\u{1F900}-\u{1F9FF}]/gu, ''); // Supplemental Symbols and Pictographs
+  cleaned = cleaned.replace(/[\u{1FA70}-\u{1FAFF}]/gu, ''); // Symbols and Pictographs Extended-A
+ 
+  // STEP 3: Remove extra whitespace and trim
+  cleaned = cleaned.replace(/\s+/g, ' ').trim();
+  
+  console.log('🧹 Cleaned text:', {
+    original: text.substring(0, 50) + '...',
+    cleaned: cleaned.substring(0, 50) + '...'
+  });
+  
+  return cleaned;
+}

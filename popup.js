@@ -2,7 +2,7 @@
 import { downloadSummaryAI ,createSummarizer,summarizeBatch} from "./chromeAI.js";
 import { VoiceService } from './voice.js';
 import { extractSender,extractSubject } from "./emailProcessor.js";
-import { hideAllPages, showPage, updateProgress } from './utils.js';
+import { hideAllPages, showPage, updateProgress, cleanSummaryText } from './utils.js';
 
 //-------------get DOM element ---------------------
 
@@ -40,7 +40,15 @@ async function getSummariesFromStorage() {
   }
   
   console.log('📦 Retrieved', result.summaries.length, 'summaries from storage');
-  return result.summaries;
+  
+  // CLEAN ALL SUMMARIES before returning
+  const cleanedSummaries = result.summaries.map(email => ({
+    ...email,
+    summary: cleanSummaryText(email.summary),
+    subject: cleanSummaryText(email.subject)
+  }));
+  
+  return cleanedSummaries;
 }
 
 async function processEmails() {
@@ -133,9 +141,11 @@ showStatus("Authentication successful!", true);
 
      const cleanSummaries = summarizedEmails.map(email => ({
         sender: extractSender(email),      // Extract from headers
-        subject: extractSubject(email),    // Extract from headers
-        summary: email.summary             // Already at top level
+        subject: cleanSummaryText(extractSubject(email)),    // Clean subject
+        summary: cleanSummaryText(email.summary)             // Clean summary (remove HTML & emojis)
       }));
+
+      console.log('🧹 Cleaned summaries:', cleanSummaries.length, 'emails processed');
 
       // STORE: Summary , sender ad subject 
       await chrome.storage.local.set({ 
@@ -148,9 +158,12 @@ showStatus("Authentication successful!", true);
       showStatus(`✅ Successfully processed ${cleanSummaries.length} emails!`, true);
     
     // Wait 1 second to show 100%, then transition to voice page
-    setTimeout(() => {
+    setTimeout(async () => {
       showPage('page-voice');
-      // The voice page will automatically start reading the summaries
+      
+      // 🎤 AUTO-PLAY FEATURE: Automatically start reading summaries
+      console.log('🎤 Voice page loaded - starting auto-play');
+      await autoPlaySummaries();
     }, 1000);
 
     }catch(error){
@@ -159,6 +172,54 @@ showStatus("Authentication successful!", true);
   }
 
 
+}
+
+// 🎤 AUTO-PLAY FUNCTION
+// This function runs automatically when the voice page loads
+async function autoPlaySummaries() {
+  try {
+    console.log('🎬 Auto-play triggered');
+    
+    // Get summaries from storage
+    const summaries = await getSummariesFromStorage();
+    console.log('📊 Retrieved summaries count:', summaries.length);
+
+    if (summaries.length === 0) {
+      // No emails to read
+      const popupMsg = "You have no new messages in the last 6 hours";
+      await voice.speakText(popupMsg);
+      showStatus(popupMsg, true);
+      
+      // Keep play button disabled since there's nothing to play
+      if (playPauseBtn) {
+        playPauseBtn.disabled = true;
+      }
+    } else {
+      // Start reading summaries automatically
+      console.log('🔊 Starting to speak', summaries.length, 'summaries');
+      voice.speakSummaries(summaries);
+      
+      // Enable play/pause button once speaking starts
+      if (playPauseBtn) {
+        playPauseBtn.disabled = false;
+        playPauseBtn.classList.remove('paused'); // Show as "playing"
+        playPauseBtn.setAttribute('aria-pressed', 'false');
+        console.log('✅ Play/Pause button enabled');
+      } else {
+        console.warn('⚠️ playPauseBtn not found - cannot enable controls');
+      }
+      
+      showStatus(`Speaking ${summaries.length} email summaries...`, true);
+    }
+  } catch (error) {
+    console.error('❌ Auto-play error:', error);
+    showStatus('Could not auto-play summaries', false);
+    
+    // Disable button on error
+    if (playPauseBtn) {
+      playPauseBtn.disabled = true;
+    }
+  }
 }
 //----------------------------------BUTTON-----------------------------------
 
@@ -186,12 +247,14 @@ loginBtn.addEventListener('click',async()=>{
 });
 
 const voice = new VoiceService();
-// TEST SUMMARY + VOICE
+
+// TEST BUTTON (Manual testing - AUTO-PLAY handles normal flow)
+// This button is now optional since auto-play triggers on voice page load
 if (testBtn) {
   testBtn.addEventListener('click', async () => {
     try {
-      const summaries = await getSummariesFromStorage();
-      console.log('Retrieved summaries count:', summaries.length);
+      const summaries = await getSummariesFromStorage(); // Now returns cleaned summaries
+      console.log('🧪 Manual test - Retrieved summaries count:', summaries.length);
 
       if (summaries.length === 0) {
         const popupMsg = "There is no message";
@@ -214,7 +277,7 @@ if (testBtn) {
     }
   });
 } else {
-  console.warn('testBtn not found in DOM - cannot start reading');
+  console.log('ℹ️ testBtn not found - using auto-play only');
 }
 
 // Ensure button default state (if exists)
