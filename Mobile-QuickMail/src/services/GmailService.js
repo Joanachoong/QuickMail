@@ -2,6 +2,7 @@
 // Handles all Gmail API interactions
 // Ported from callEmailAPI.js
 
+import Base64 from 'react-native-base64';
 import { CONFIG } from '../config/constants';
 import { getTimeHoursAgo } from '../utils/helpers';
 import { extractSender, extractSubject } from '../utils/emailProcessor';
@@ -145,8 +146,8 @@ class GmailService {
         .filter(line => line !== '')
         .join('\r\n');
 
-      // Base64 encode the email
-      const encodedEmail = btoa(email)
+      // Base64 encode the email (React Native compatible)
+      const encodedEmail = Base64.encode(email)
         .replace(/\+/g, '-')
         .replace(/\//g, '_')
         .replace(/=+$/, '');

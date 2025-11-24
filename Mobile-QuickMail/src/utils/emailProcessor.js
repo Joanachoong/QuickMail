@@ -1,15 +1,17 @@
 // Email processing utilities
 // Ported from Chrome extension emailProcessor.js
 
+import Base64 from 'react-native-base64';
+
 /**
- * Decode base64 email body
+ * Decode base64 email body (React Native compatible)
  */
 export function decodeBase64(base64String) {
   try {
     // Replace URL-safe characters
     const base64 = base64String.replace(/-/g, '+').replace(/_/g, '/');
-    // Decode base64
-    const decoded = atob(base64);
+    // Decode base64 using React Native compatible library
+    const decoded = Base64.decode(base64);
     return decoded;
   } catch (error) {
     console.error('Failed to decode base64:', error);
