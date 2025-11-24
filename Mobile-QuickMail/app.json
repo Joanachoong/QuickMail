@@ -1,0 +1,52 @@
+{
+  "expo": {
+    "name": "QuickMail",
+    "slug": "quickmail-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.quickmail.mobile",
+      "infoPlist": {
+        "NSSpeechRecognitionUsageDescription": "QuickMail needs access to speech recognition to enable voice commands and voice replies.",
+        "NSMicrophoneUsageDescription": "QuickMail needs access to your microphone to record voice replies."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.quickmail.mobile",
+      "permissions": [
+        "RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "scheme": "quickmail",
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 23
+          }
+        }
+      ]
+    ]
+  }
+}
